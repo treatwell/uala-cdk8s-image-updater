@@ -146,6 +146,13 @@ class UpdaterController
     @applications_to_update = []
     check_type(@applications_conf, '')
 
+    if @applications_to_update.count == 0
+      puts "\nNothing to update, exit.".green
+
+      puts "\nDONE!\n".blue
+      exit(0)
+    end
+
     puts "Found #{@applications_to_update.count} applications to update:".green
     puts @applications_to_update.map { |e| e['path'] + ' - ' + e['name']}
   end
