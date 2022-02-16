@@ -1,4 +1,4 @@
-FROM ruby:2.6.2-slim AS base
+FROM ruby:2.7.5-slim AS base
 RUN apt-get update -qq && \
     apt-get upgrade -y && \
     apt-get install -y build-essential \
@@ -12,7 +12,7 @@ RUN apt-get update -qq && \
 # Add Github CLI
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
      gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg && \
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | \ 
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | \
     tee /etc/apt/sources.list.d/github-cli.list > /dev/null && \
     apt-get update -qq && apt-get install -y gh
 
