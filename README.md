@@ -17,6 +17,7 @@ In order to use this tool, some environment variables are required:
 * `GIT_SOURCE_BRANCH`: The source branch of the application that want to update the Iac Repo
 * `GIT_SOURCE_COMMIT_SHA`: The source commit SHA of the application that want to update the Iac Repo
 * `GIT_SOURCE_TAG`: The source git tag release of the application that want to update the Iac Repo
+* `FORCE_UPDATE_APP`: If you want to update the tag image only for one application, you can put here the name defined in applications*.yaml files
 * `IAC_DEPLOYER_FILE`: You can generate a deployer file putting here the path of the file you want (ex. `iac_deployer_conf.yaml`). This file can be easly used by [cdk8s-deployer](https://github.com/uala/cdk8s-deployer)
 
 You can run it with docker with:

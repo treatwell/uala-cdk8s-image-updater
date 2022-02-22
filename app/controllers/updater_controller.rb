@@ -54,6 +54,11 @@ class UpdaterController
     puts "\nWe are looking for:\n"
     puts "GIT REPO: #{ENV['GIT_SOURCE_REPO'].green}"
     puts "GIT BRANCH: #{ENV['GIT_SOURCE_BRANCH'].green}"
+
+    if ENV.has_key?('FORCE_UPDATE_APP')
+      puts "\nWe want to update only the app: #{ENV['FORCE_UPDATE_APP'].green}"
+    end
+
     if ENV.has_key?('GIT_SOURCE_TAG')
       puts "\nWe want to update images to tag release: #{ENV['GIT_SOURCE_TAG'].green}"
     elsif ENV.has_key?('GIT_SOURCE_COMMIT_SHA')
@@ -124,7 +129,8 @@ class UpdaterController
     if git_repo_found && git_branch_found
       if git_only_tags_found && !ENV.has_key?('GIT_SOURCE_TAG')
         # this app cannot be added because require a tag release.
-      else
+      elsif !ENV.has_key?('FORCE_UPDATE_APP') ||
+        ENV['FORCE_UPDATE_APP'] === h['name']
         h['path'] = path
         @applications_to_update.push(h)
       end
@@ -167,7 +173,11 @@ class UpdaterController
         yaml_content = YAML.load(
         yaml_file.read
         )
-        yaml_content[app['name']]['image'] = app['image']
+        # puts app
+        if yaml_content[app['name']]
+          yaml_content[app['name']]['image'] = app['image']
+          print "#{app['path']} - #{app['name']}: #{app['image'].green}\n"
+        end
         # puts yaml_content.to_yaml
         yaml_file.rewind
         yaml_file.write(yaml_content.to_yaml)
@@ -175,7 +185,6 @@ class UpdaterController
       end
 
 
-      print "#{app['path']} - #{app['name']}: #{app['image'].green}\n"
     end
   end
 
