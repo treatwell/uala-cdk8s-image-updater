@@ -30,6 +30,6 @@ RUN gem install bundler && \
     bundle install
 
 COPY . .
-RUN chmod +x ./updater.rb
+RUN chmod +x /usr/src/app/updater.rb
 
-CMD ["./updater.rb"]
+CMD ["/usr/src/app/updater.rb"]
