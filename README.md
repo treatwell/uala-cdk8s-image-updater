@@ -12,6 +12,7 @@ In order to use this tool, some environment variables are required:
 * `GIT_IAC_REPO`: This is the most important settings, it contains the IaC repository that you want to update (ONLY GITHUB URL IS ALLOWED AT THIS TIME. ex. `github.com/org/org-iac.git`)
 * `GIT_IAC_BRANCH`: By default the tool will use the default branch (master/main). You can set a different branch here.
 * `GIT_IAC_FORCE_PR`: By default the tool will create a Pull Request in the case there is a `GIT_SOURCE_TAG`, otherwise a commit will be pushed to the current Iac Repo branch. You can set this to `true` for create a Pull Request also for every commit
+* `GIT_IAC_DISABLE_TAG_PR`: By default the tool will create a Pull Request in the case there is a `GIT_SOURCE_TAG`. You can disable this behaviour with this setting to `true`.
 * `GIT_IAC_TOKEN`: A github token authorized to access in read/write to the Iac Repo
 * `GIT_SOURCE_REPO`: The source repository of the application that want to update the Iac Repo
 * `GIT_SOURCE_BRANCH`: The source branch of the application that want to update the Iac Repo

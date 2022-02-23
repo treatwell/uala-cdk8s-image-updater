@@ -199,7 +199,9 @@ class UpdaterController
     end
     push_branch += "-" + DateTime.now.strftime('%s')
 
-    if ENV.has_key?('GIT_SOURCE_TAG') || ENV['GIT_IAC_FORCE_PR'] == "true"
+    if (ENV.has_key?('GIT_SOURCE_TAG') &&
+        (!ENV.has_key?('GIT_IAC_DISABLE_TAG_PR') || ENV['GIT_IAC_DISABLE_TAG_PR'] != "true")
+       ) || ENV['GIT_IAC_FORCE_PR'] == "true"
       if ENV['GIT_DRY_RUN'] == "true"
         puts "\n[DRY_RUN] Added edited files to a new branch: #{push_branch.green}."
         puts "\n[DRY_RUN] No PR will be created in dryrun mode."
@@ -224,6 +226,7 @@ class UpdaterController
 
       begin
         @g.checkout(@g.current_branch)
+        @g.pull(@g.repo, @g.current_branch)
         @g.commit_all("[IMAGE_UPDATER] #{push_branch}")
         @g.push('origin', @g.current_branch)
       rescue => error
