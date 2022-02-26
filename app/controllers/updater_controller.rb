@@ -118,8 +118,11 @@ class UpdaterController
       if k == 'git_repo' && v == ENV['GIT_SOURCE_REPO']
         git_repo_found = true
       end
-      if k == 'branch' && v == ENV['GIT_SOURCE_BRANCH']
-        git_branch_found = true
+      if k == 'branch'
+        regexp = Regexp.new("^#{v}$")
+        if regexp.match?(ENV['GIT_SOURCE_BRANCH'])
+          git_branch_found = true
+        end
       end
       if k == 'only_tags' && v == true
         git_only_tags_found = true
