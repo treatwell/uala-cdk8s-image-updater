@@ -5,6 +5,7 @@ require 'yaml'
 require 'git'
 require 'deep_merge'
 require 'colorize'
+require 'retriable'
 
 class UpdaterController
   @git_client = nil
