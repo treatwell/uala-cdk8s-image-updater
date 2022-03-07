@@ -219,7 +219,7 @@ class UpdaterController
       end
       begin
         # Match on each exception that doesn't contains "Your branch is up to date"
-        Retriable.retriable(on: { Exception => /^((?!Your branch is up to date).)*$/ }, on_retry: on_retry) do
+        ::Retriable.retriable(on: { Exception => /^((?!Your branch is up to date).)*$/ }, on_retry: on_retry) do
           @git_client.pull(@git_client.repo, @git_client.current_branch)
           @git_client.commit_all("[IMAGE_UPDATER] #{push_branch}")
           @git_client.push('origin', @git_client.current_branch)
