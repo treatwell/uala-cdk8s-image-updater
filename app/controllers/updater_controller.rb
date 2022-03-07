@@ -125,9 +125,9 @@ class UpdaterController
     if git_repo_found && git_branch_found
       if git_only_tags_found && !ENV.key?('GIT_SOURCE_TAG')
         # this app cannot be added because require a tag release.
-      elsif !ENV.key?('FORCE_UPDATE_APP') || ENV['FORCE_UPDATE_APP'] == h['name']
+      elsif !ENV.key?('FORCE_UPDATE_APP') || ENV['FORCE_UPDATE_APP'] == hash['name']
         hash['path'] = path
-        @applications_to_update.push(h)
+        @applications_to_update.push(hash)
       end
       # puts "APP FOUND: \npath:#{path}\n#{hash.to_yaml}\n\n"
     end
