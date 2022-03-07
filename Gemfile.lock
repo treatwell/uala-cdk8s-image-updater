@@ -7,8 +7,10 @@ GEM
     git (1.9.1)
       rchardet (~> 1.8)
     rchardet (1.8.0)
+    retriable (3.1.2)
 
 PLATFORMS
+  arm64-darwin-21
   universal-darwin-20
   x86_64-darwin-21
 
@@ -17,6 +19,7 @@ DEPENDENCIES
   deep_merge
   dotenv
   git
+  retriable
 
 BUNDLED WITH
-   2.2.26
+   2.3.8
