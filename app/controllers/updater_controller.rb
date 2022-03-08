@@ -213,18 +213,18 @@ class UpdaterController
         return
       end
 
-      @git_client.checkout(@git_client.current_branch)
-      @git_client.commit_all("[IMAGE_UPDATER] #{push_branch}")
       on_retry = proc do |exception, try, elapsed_time, next_interval|
         puts "#{exception.class}: '#{exception.message}' - #{try} tries in #{elapsed_time} seconds and #{next_interval} seconds until the next try.".red
       end
       begin
+        @git_client.checkout(@git_client.current_branch)
+        @git_client.commit_all("[IMAGE_UPDATER] #{push_branch}")
         # Match on each exception that doesn't contains "Your branch is up to date"
-        ::Retriable.retriable(on: { Exception => /^((?!Your branch is up to date).)*$/ }, on_retry: on_retry) do
+        ::Retriable.retriable(on: { Git::GitExecuteError => /^((?!Your branch is up to date).)*$/ }, on_retry: on_retry, tries: 10, base_interval: 1) do
           @git_client.pull(@git_client.repo, @git_client.current_branch)
           @git_client.push('origin', @git_client.current_branch)
         end
-      rescue Exception => e
+      rescue Git::GitExecuteError => e
         if e.message.include?('Your branch is up to date')
           puts "\nEdited files match with last version on #{@git_client.current_branch} branch.".green
         else
