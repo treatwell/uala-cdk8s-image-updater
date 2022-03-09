@@ -221,7 +221,7 @@ class UpdaterController
         @git_client.commit_all("[IMAGE_UPDATER] #{push_branch}")
         # Match on each exception that doesn't contains "Your branch is up to date"
         ::Retriable.retriable(on: { Git::GitExecuteError => /^((?!Your branch is up to date).)*$/ }, on_retry: on_retry, tries: 10, base_interval: 1) do
-          @git_client.pull(@git_client.repo, @git_client.current_branch)
+          @git_client.pull('origin', @git_client.current_branch)
           @git_client.push('origin', @git_client.current_branch)
         end
       rescue Git::GitExecuteError => e
