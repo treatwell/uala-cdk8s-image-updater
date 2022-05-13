@@ -29,20 +29,23 @@ class UpdaterController
       exit 1
     end
 
-    if !ENV.key?('GIT_SOURCE_BRANCH')
-      puts '[ERROR] GIT_SOURCE_BRANCH environment variable is missing!'.red
-      exit 1
-    end
-
     if !ENV.key?('GIT_SOURCE_COMMIT_SHA') && !ENV.key?('GIT_SOURCE_TAG')
       puts '[ERROR] GIT_SOURCE_COMMIT_SHA AND GIT_SOURCE_TAG environment variables are missing!'.red
       exit 1
     end
+
+    if ENV.key?('GIT_SOURCE_COMMIT_SHA') && !ENV.key?('GIT_SOURCE_BRANCH')
+      puts '[ERROR] GIT_SOURCE_BRANCH environment variable is missing!'.red
+      exit 1
+    end
+
     puts 'OK.'
     puts "\n#################################################################".green
     puts "\nWe are looking for:\n"
     puts "GIT REPO: #{ENV['GIT_SOURCE_REPO'].green}"
-    puts "GIT BRANCH: #{ENV['GIT_SOURCE_BRANCH'].green}"
+    if ENV.key?('GIT_SOURCE_BRANCH')
+      puts "GIT BRANCH: #{ENV['GIT_SOURCE_BRANCH'].green}"
+    end
 
     if ENV.key?('FORCE_UPDATE_APP')
       puts "\nWe want to update only the app: #{ENV['FORCE_UPDATE_APP'].green}"
@@ -123,7 +126,7 @@ class UpdaterController
       check_type(v, "#{path}/#{k}")
     end
 
-    if git_repo_found && git_branch_found
+    if git_repo_found && (git_branch_found || git_only_tags_found)
       if git_only_tags_found && !ENV.key?('GIT_SOURCE_TAG')
         # this app cannot be added because require a tag release.
       elsif !ENV.key?('FORCE_UPDATE_APP') || ENV['FORCE_UPDATE_APP'] == hash['name']
