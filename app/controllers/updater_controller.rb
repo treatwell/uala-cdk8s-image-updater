@@ -136,7 +136,7 @@ class UpdaterController
       hash['path'] = path
       @applications_to_update.push(hash)
       # puts "APP FOUND: \npath:#{path}\n#{hash.to_yaml}\n\n"
-   end
+    end
   end
 
   def iArray(array, path)
