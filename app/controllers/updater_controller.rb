@@ -51,7 +51,7 @@ class UpdaterController
       puts "\nWe want to update only the app: #{ENV['FORCE_UPDATE_APP'].green}"
     end
 
-    if ENV.key?('GIT_SOURCE_TAG')
+    if !ENV['GIT_SOURCE_TAG'].to_s.strip.empty?
       puts "\nWe want to update images to tag release: #{ENV['GIT_SOURCE_TAG'].green}"
     elsif ENV.key?('GIT_SOURCE_COMMIT_SHA')
       puts "\nWe want to update images to commit: #{ENV['GIT_SOURCE_COMMIT_SHA'].green}"
@@ -126,13 +126,15 @@ class UpdaterController
       check_type(v, "#{path}/#{k}")
     end
 
-    if git_repo_found && (git_branch_found || git_only_tags_found)
-      if git_only_tags_found && !ENV.key?('GIT_SOURCE_TAG')
-        # this app cannot be added because require a tag release.
-      elsif !ENV.key?('FORCE_UPDATE_APP') || ENV['FORCE_UPDATE_APP'] == hash['name']
-        hash['path'] = path
-        @applications_to_update.push(hash)
-      end
+    if git_repo_found &&
+      (git_branch_found || git_only_tags_found) &&
+      (!ENV.key?('FORCE_UPDATE_APP') || ENV['FORCE_UPDATE_APP'] == hash['name']) &&
+      (
+        (!ENV['GIT_SOURCE_TAG'].to_s.strip.empty? && git_only_tags_found) ||
+        (ENV['GIT_SOURCE_TAG'].to_s.strip.empty? && !git_only_tags_found)
+      )
+      hash['path'] = path
+      @applications_to_update.push(hash)
       # puts "APP FOUND: \npath:#{path}\n#{hash.to_yaml}\n\n"
     end
   end
