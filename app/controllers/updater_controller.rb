@@ -46,7 +46,7 @@ class UpdaterController
       exit 1
     end
 
-    unless ENV.key?('GIT_SOURCE_COMMIT_SHA') && ENV.key?('GIT_SOURCE_TAG')
+    unless ENV.key?('GIT_SOURCE_COMMIT_SHA') || ENV.key?('GIT_SOURCE_TAG')
       puts '[ERROR] GIT_SOURCE_COMMIT_SHA AND GIT_SOURCE_TAG environment variables are missing!'.red
       exit 1
     end
