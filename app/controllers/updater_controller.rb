@@ -249,7 +249,7 @@ class UpdaterController
   def _announce_step(text)
     @current_step+=1
     @current_substep = 0
-    puts "\nStep #{@current_step}: #{text}".light_yellow
+    puts "\nStep #{@current_step}: #{text}".yellow
   end
 
   def _announce_substep(text)
