@@ -1,0 +1,13 @@
+environments:
+  - production:
+    - name: testApp
+      git_repo: uala/test-app
+      branch: main
+      only_tags: true
+      image: "<%= \"org/test-app:#{ENV['GIT_SOURCE_TAG'].to_s.gsub(/\/+/, '-')}\" %>"
+  - disaster-recovery:
+    - name: testApp
+      git_repo: uala/test-app
+      branch: main
+      only_tags: true
+      image: "<%= \"org/test-app:#{ENV['GIT_SOURCE_TAG'].to_s.gsub(/\/+/, '-')}\" %>"

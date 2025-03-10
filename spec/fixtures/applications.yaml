@@ -1,0 +1,11 @@
+environments:
+  - develop:
+    - name: testApp
+      git_repo: uala/test-app
+      branch: main
+      image: "<%= \"org/test-app:#{ENV['GIT_SOURCE_BRANCH'].to_s.gsub(/\/+/, '-')}-#{ENV['GIT_SOURCE_COMMIT_SHA'].to_s[0, 8]}\" %>"
+  - staging:
+    - name: testApp
+      git_repo: uala/test-app
+      branch: main
+      image: "<%= \"org/test-app:#{ENV['GIT_SOURCE_BRANCH'].to_s.gsub(/\/+/, '-')}-#{ENV['GIT_SOURCE_COMMIT_SHA'].to_s[0, 8]}\" %>"
