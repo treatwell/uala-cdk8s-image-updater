@@ -14,3 +14,4 @@ group :development, :test do
   gem 'simplecov', require: false
   gem 'faker'
 end
+gem 'timecop', require: false
