@@ -80,6 +80,11 @@ Currently, the project lacks automated tests. We need to:
    - Set up test environment and configuration
    - Create fixtures for YAML configurations
    
+   **Test Structure Requirements:**
+   - All tests must follow Given-When-Then pattern explicitly
+   - Use comments to clearly separate test phases
+   - Maintain consistent structure across all test files
+   
    **Fixture Requirements:**
    - Use only literal values in image tags (no ERB templates)
    - Organize fixtures by test scenario in dedicated folders

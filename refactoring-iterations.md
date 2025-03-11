@@ -13,6 +13,10 @@ Breaking down the refactoring into smaller, reviewable iterations that deliver i
    - Update Gemfile
    - Add spec_helper.rb
    - Create basic directory structure
+   - Set up test structure guidelines:
+     * Enforce Given-When-Then pattern
+     * Use explicit section comments
+     * Maintain consistent structure
 
 2. Add first set of tests for UpdaterUtilities
    - Focus on current application matching logic
