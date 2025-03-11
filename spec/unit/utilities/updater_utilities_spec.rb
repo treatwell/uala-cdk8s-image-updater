@@ -17,20 +17,7 @@ RSpec.describe Utilities do
       describe 'matching applications by repo and branch' do
         # Given
         let(:config) do
-          {
-            'environments' => [
-              {
-                'develop' => [
-                  {
-                    'name' => 'testApp',
-                    'git_repo' => 'uala/test-app',
-                    'branch' => 'main',
-                    'image' => 'org/test-app:main-12345678'
-                  }
-                ]
-              }
-            ]
-          }
+          YAML.load_file('spec/fixtures/development/basic.yaml')
         end
 
         context 'when branch matches' do
@@ -73,21 +60,7 @@ RSpec.describe Utilities do
       describe 'handling tag-based deployments' do
         # Given
         let(:config) do
-          {
-            'environments' => [
-              {
-                'production' => [
-                  {
-                    'name' => 'testApp',
-                    'git_repo' => 'uala/test-app',
-                    'branch' => 'main',
-                    'only_tags' => true,
-                    'image' => 'org/test-app:v1.0.0'
-                  }
-                ]
-              }
-            ]
-          }
+          YAML.load_file('spec/fixtures/production/tag_based.yaml')
         end
 
         context 'when tag is present' do
@@ -130,24 +103,7 @@ RSpec.describe Utilities do
       describe 'handling forced application updates' do
         # Given
         let(:config) do
-          {
-            'environments' => [
-              {
-                'develop' => [
-                  {
-                    'name' => 'testApp',
-                    'git_repo' => 'uala/test-app',
-                    'branch' => 'main'
-                  },
-                  {
-                    'name' => 'otherApp',
-                    'git_repo' => 'uala/test-app',
-                    'branch' => 'main'
-                  }
-                ]
-              }
-            ]
-          }
+          YAML.load_file('spec/fixtures/development/multiple_apps.yaml')
         end
 
         context 'when FORCE_UPDATE_APP is set' do
@@ -172,23 +128,7 @@ RSpec.describe Utilities do
       describe 'traversing nested configurations' do
         # Given
         let(:config) do
-          {
-            'environments' => [
-              {
-                'develop' => [
-                  {
-                    'services' => [
-                      {
-                        'name' => 'testApp',
-                        'git_repo' => 'uala/test-app',
-                        'branch' => 'main'
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
+          YAML.load_file('spec/fixtures/nested/services.yaml')
         end
 
         it 'finds applications in nested structures' do

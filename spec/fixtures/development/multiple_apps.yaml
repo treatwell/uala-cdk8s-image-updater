@@ -1,0 +1,10 @@
+environments:
+  - develop:
+    - name: testApp
+      git_repo: uala/test-app
+      branch: main
+      image: org/test-app:main-12345678
+    - name: otherApp
+      git_repo: uala/test-app
+      branch: main
+      image: org/test-app:main-12345678
