@@ -329,24 +329,26 @@ RSpec.describe UpdaterController do
         end
     
         context 'when matching applications are found' do
-          it 'populates applications to update' do
-            # Given: Mock utilities to return matching apps
-            matching_apps = [
-              { 'path' => 'dev', 'name' => 'app1' },
-              { 'path' => 'prod', 'name' => 'app2' }
-            ]
-            expect(utilities).to receive(:check_type)
-              .with({ 'test' => 'config' }, '', [])
-              .and_return(matching_apps)
-    
-            # When: Finding involved applications
+         it 'populates applications to update' do
+           # Given: Mock utilities to modify applications_to_update array
+           apps_to_update = controller.instance_variable_get(:@applications_to_update)
+           expect(utilities).to receive(:check_type)
+             .with({ 'test' => 'config' }, '', apps_to_update) do |_, _, arr|
+               # Simulate the actual behavior by modifying the passed array
+               arr.push({ 'path' => 'dev', 'name' => 'app1' })
+               arr.push({ 'path' => 'prod', 'name' => 'app2' })
+             end
+
+           # When: Finding involved applications
             expect { controller.find_involved_applications }.not_to raise_error(SystemExit)
-    
-            # Then: Should update applications list
-            expect(controller.instance_variable_get(:@applications_to_update))
-              .to eq(matching_apps)
-          end
-        end
+
+           # Then: Should have populated applications list
+           expect(controller.instance_variable_get(:@applications_to_update)).to eq([
+             { 'path' => 'dev', 'name' => 'app1' },
+             { 'path' => 'prod', 'name' => 'app2' }
+           ])
+         end
+       end
     
         context 'when no matching applications are found' do
           it 'exits cleanly' do
