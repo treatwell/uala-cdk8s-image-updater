@@ -79,6 +79,13 @@ Currently, the project lacks automated tests. We need to:
    - Add RSpec as the testing framework (based on .gitignore suggesting previous RSpec usage)
    - Set up test environment and configuration
    - Create fixtures for YAML configurations
+   
+   **Fixture Requirements:**
+   - Use only literal values in image tags (no ERB templates)
+   - Organize fixtures by test scenario in dedicated folders
+   - Create comprehensive fixtures covering all test cases
+   - Folder names must evoke the scenario under test (e.g., "development", "production", "nested")
+   - Fixtures should mirror real-world configuration structure
 
 2. **Test Coverage Plan**
    a. **Unit Tests**

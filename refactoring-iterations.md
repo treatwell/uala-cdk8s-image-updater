@@ -35,12 +35,16 @@ Breaking down the refactoring into smaller, reviewable iterations that deliver i
    - PR creation logic
 
 2. Add fixtures and test data
-   - Sample YAML configurations
-   - Test environment variables
+   - Create scenario-based fixture directories
+   - Use only literal values in YAML configurations (no ERB templates)
+   - Each YAML must reflect real-world configuration structure
+   - Folder names must evoke test scenarios (e.g., "development", "production")
+   - Create comprehensive fixtures covering all test cases
 
 ### Deliverables:
 - Comprehensive test suite for existing functionality
-- Test fixtures and helpers
+- Well-organized, realistic test fixtures
+- Clear fixture organization by test scenario
 - Documentation updates for test coverage
 
 ## Iteration 3: DOCKER_IMAGE_TAG Implementation
