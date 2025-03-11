@@ -3,20 +3,23 @@ require_relative '../../../app/controllers/updater_controller'
 
 RSpec.describe UpdaterController do
   let(:controller) { described_class.new }
+  let(:original_env) { {} }
+
+  before(:each) do
+    # Store all environment variables
+    original_env.clear
+    ENV.each { |k,v| original_env[k] = v }
+  end
+
+  after(:each) do
+    # Restore original environment
+    ENV.clear
+    original_env.each { |k,v| ENV[k] = v }
+  end
 
   describe '#check_required_params' do
     # Given: Required environment variables are not set
     context 'when missing required environment variables' do
-      before do
-        # Clear all relevant env vars before each test
-        ENV.delete('GIT_IAC_REPO')
-        ENV.delete('GIT_IAC_TOKEN')
-        ENV.delete('GIT_SOURCE_REPO')
-        ENV.delete('GIT_SOURCE_COMMIT_SHA')
-        ENV.delete('GIT_SOURCE_TAG')
-        ENV.delete('GIT_SOURCE_BRANCH')
-      end
-
       it 'exits with error when GIT_IAC_REPO is missing' do
         # When: Checking required params
         # Then: Should exit with error
@@ -273,7 +276,6 @@ RSpec.describe UpdaterController do
     
       describe '#prepare_local_environment' do
         before do
-          ENV.delete('GITHUB_TOKEN')
           FileUtils.mkdir_p('iac-repo')
         end
     
@@ -334,13 +336,6 @@ RSpec.describe UpdaterController do
             ENV['GIT_SOURCE_BRANCH'] = 'main'
             ENV['GIT_SOURCE_TAG'] = ''
             ENV['DEBUG'] = 'false'
-          end
-
-          after do
-            ENV.delete('GIT_SOURCE_REPO')
-            ENV.delete('GIT_SOURCE_BRANCH')
-            ENV.delete('GIT_SOURCE_TAG')
-            ENV.delete('DEBUG')
           end
 
           it 'populates applications to update' do
