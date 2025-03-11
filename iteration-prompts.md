@@ -63,6 +63,7 @@ Objectives for this iteration:
 3. No functionality changes yet
 
 Please help me expand our test coverage to include UpdaterController functionality.
+Please also run all the unit tests until they pass.
 ```
 
 ## Iteration 3 Prompt - DOCKER_IMAGE_TAG Implementation
@@ -95,6 +96,7 @@ Objectives for this iteration:
 3. Update documentation
 
 Please help me implement the DOCKER_IMAGE_TAG feature with tests.
+Please also run all the unit tests until they pass.
 ```
 
 ## Iteration 4 Prompt - Integration Testing
@@ -125,6 +127,7 @@ Objectives for this iteration:
 3. Final documentation updates
 
 Please help me implement the integration tests and finalize the refactoring.
+Please also run all the unit tests until they pass.
 ```
 
 ## How to Use These Prompts
