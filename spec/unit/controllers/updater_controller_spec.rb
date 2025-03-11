@@ -329,26 +329,94 @@ RSpec.describe UpdaterController do
         end
     
         context 'when matching applications are found' do
-         it 'populates applications to update' do
-           # Given: Mock utilities to modify applications_to_update array
-           apps_to_update = controller.instance_variable_get(:@applications_to_update)
-           expect(utilities).to receive(:check_type)
-             .with({ 'test' => 'config' }, '', apps_to_update) do |_, _, arr|
-               # Simulate the actual behavior by modifying the passed array
-               arr.push({ 'path' => 'dev', 'name' => 'app1' })
-               arr.push({ 'path' => 'prod', 'name' => 'app2' })
-             end
+          before do
+            ENV['GIT_SOURCE_REPO'] = 'test-app'
+            ENV['GIT_SOURCE_BRANCH'] = 'main'
+            ENV['GIT_SOURCE_TAG'] = ''
+            ENV['DEBUG'] = 'false'
+          end
 
-           # When: Finding involved applications
+          after do
+            ENV.delete('GIT_SOURCE_REPO')
+            ENV.delete('GIT_SOURCE_BRANCH')
+            ENV.delete('GIT_SOURCE_TAG')
+            ENV.delete('DEBUG')
+          end
+
+          it 'populates applications to update' do
+            # Given: Applications configuration with matching git repo and branch
+            test_config = {
+              'environments' => {
+                'development' => {
+                  'applications' => {
+                    'app1' => {
+                      'name' => 'app1',
+                      'git_repo' => 'test-app',
+                      'branch' => 'main',
+                      'image' => 'test/app1:latest'
+                    }
+                  }
+                },
+                'production' => {
+                  'applications' => {
+                    'app2' => {
+                      'name' => 'app2',
+                      'git_repo' => 'test-app',
+                      'branch' => 'main',
+                      'image' => 'test/app2:latest'
+                    }
+                  }
+                }
+              }
+            }
+            
+            controller.instance_variable_set(:@applications_conf, test_config)
+
+            # When/Then: Should find applications without raising error
+            expect { controller.find_involved_applications }.not_to raise_error
+
+            # And: Should have populated applications list with matched applications
+            applications = controller.instance_variable_get(:@applications_to_update)
+            expect(applications.length).to eq(2)
+            expect(applications).to include(
+              hash_including('name' => 'app1', 'git_repo' => 'test-app', 'branch' => 'main'),
+              hash_including('name' => 'app2', 'git_repo' => 'test-app', 'branch' => 'main')
+            )
+          end
+
+          it 'handles tag-based deployments correctly' do
+            ENV['GIT_SOURCE_TAG'] = 'v1.0.0'
+            ENV['GIT_SOURCE_BRANCH'] = ''
+
+            # Given: Applications configuration with tag-only applications
+            test_config = {
+              'environments' => {
+                'development' => {
+                  'applications' => {
+                    'app1' => {
+                      'name' => 'app1',
+                      'git_repo' => 'test-app',
+                      'only_tags' => true,
+                      'image' => 'test/app1:latest'
+                    }
+                  }
+                }
+              }
+            }
+            
+            controller.instance_variable_set(:@applications_conf, test_config)
+
+            # When/Then: Should find tag-based applications without raising error
             expect { controller.find_involved_applications }.not_to raise_error(SystemExit)
 
-           # Then: Should have populated applications list
-           expect(controller.instance_variable_get(:@applications_to_update)).to eq([
-             { 'path' => 'dev', 'name' => 'app1' },
-             { 'path' => 'prod', 'name' => 'app2' }
-           ])
-         end
-       end
+            # And: Should have correct applications
+            applications = controller.instance_variable_get(:@applications_to_update)
+            expect(applications.length).to eq(1)
+            expect(applications).to include(
+              hash_including('name' => 'app1', 'git_repo' => 'test-app', 'only_tags' => true)
+            )
+          end
+        end
     
         context 'when no matching applications are found' do
           it 'exits cleanly' do
