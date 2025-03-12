@@ -101,6 +101,36 @@ You already done the tests, but I'm not satified
 - you will run all the unit test to be sure the changes are successful
 ```
 
+### augmentation 2
+
+```
+Hi Roo, I need your help with the second iteration of our CDK8S Image Updater refactoring.
+
+Background:
+Please review these files first:
+- refactoring-plan.md: Contains complete testing strategy
+- refactoring-iterations.md: Overview of all iterations
+- app/controllers/updater_controller.rb: Controller to be tested
+- spec/*: Tests created in Iteration 1
+
+Context:
+- First iteration added basic RSpec setup and initial tests
+- We need comprehensive test coverage before making functional changes
+- Focus is on UpdaterController class testing
+- Some test has been written for UpdaterController but are not aligned with the goal
+
+Goal:
+- Test must be written in a black box manner
+- As we are testing in black box way, we won't test private methods or private states
+- We only test behaviour that is representative of what is going to happen in reality
+- All the yamls examples must be created in a fixture file with a name that evoque in which scenario is used
+- All test must be written with the Given When Then pattern, not only separating the code chunks but written in a functional way.
+- you will run all the unit test to be sure the changes are successful, not only the bit you changed.
+- as find_involved_applications sometimes exits, will always run this one this way `expect { controller.find_involved_applications }.not_to raise_error(SystemExit)` regardless of rspec warnings
+- we will be always sure that we are asserting changes, that what is asserted is not what is comming from the fixtures, so we will check in the test that the when, the action actually did something
+- the test must be functional we will no assert interaction, we will assert functionality
+```
+
 ## Iteration 3 Prompt - DOCKER_IMAGE_TAG Implementation
 
 ```
