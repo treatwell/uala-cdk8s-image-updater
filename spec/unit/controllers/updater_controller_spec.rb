@@ -400,7 +400,11 @@ RSpec.describe UpdaterController do
       allow(Git).to receive(:clone).and_return(mock_git)
       allow(mock_git).to receive(:current_branch).and_return('main')
       allow(mock_git).to receive(:branch)
-      allow(mock_git).to receive_message_chain(:branch, :checkout)
+      
+      mock_branch = instance_double(Git::Branch)
+      allow(mock_git).to receive(:branch).and_return(mock_branch)
+      allow(mock_branch).to receive(:checkout)
+      
       allow(mock_git).to receive(:commit_all)
       allow(mock_git).to receive(:push)
       allow(controller).to receive(:`)
