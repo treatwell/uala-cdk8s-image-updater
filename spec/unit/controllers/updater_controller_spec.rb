@@ -2,91 +2,69 @@ require 'spec_helper'
 require_relative '../../../app/controllers/updater_controller'
 
 RSpec.describe UpdaterController do
-  # Common setup
-  let(:controller) { described_class.new }
-  let(:original_env) { {} }
-
-  before(:each) do
-    # Store all environment variables
-    original_env.clear
-    ENV.each { |k,v| original_env[k] = v }
-  end
-
-  after(:each) do
-    # Restore original environment
-    ENV.clear
-    original_env.each { |k,v| ENV[k] = v }
-  end
-
   describe 'Environment Configuration' do
     context 'when validating required environment variables' do
       it 'exits with error when GIT_IAC_REPO is missing' do
         # Given: No environment variables are set
-        ENV.clear
-        
+
         # When: Running environment validation
         # Then: System should exit with error
-        expect { controller.check_required_params }.to raise_error(SystemExit)
+        expect { subject.check_required_params }.to raise_error(SystemExit)
       end
 
       it 'exits with error when GIT_IAC_TOKEN is missing' do
         # Given: Only GIT_IAC_REPO is set
-        ENV.clear
-        ENV['GIT_IAC_REPO'] = 'github.com/org/repo'
+        stub_env('GIT_IAC_REPO', 'github.com/org/repo')
 
         # When: Running environment validation
         # Then: System should exit with error
-        expect { controller.check_required_params }.to raise_error(SystemExit)
+        expect { subject.check_required_params }.to raise_error(SystemExit)
       end
 
       it 'exits with error when GIT_SOURCE_REPO is missing' do
         # Given: IAC-related variables are set
-        ENV.clear
-        ENV['GIT_IAC_REPO'] = 'github.com/org/repo'
-        ENV['GIT_IAC_TOKEN'] = 'token123'
+        stub_env('GIT_IAC_REPO', 'github.com/org/repo')
+        stub_env('GIT_IAC_TOKEN', 'token123')
 
         # When: Running environment validation
         # Then: System should exit with error
-        expect { controller.check_required_params }.to raise_error(SystemExit)
+        expect { subject.check_required_params }.to raise_error(SystemExit)
       end
 
       it 'exits with error when both GIT_SOURCE_COMMIT_SHA and GIT_SOURCE_TAG are missing' do
         # Given: Basic repository variables are set
-        ENV.clear
-        ENV['GIT_IAC_REPO'] = 'github.com/org/repo'
-        ENV['GIT_IAC_TOKEN'] = 'token123'
-        ENV['GIT_SOURCE_REPO'] = 'github.com/org/source'
+        stub_env('GIT_IAC_REPO', 'github.com/org/repo')
+        stub_env('GIT_IAC_TOKEN', 'token123')
+        stub_env('GIT_SOURCE_REPO', 'github.com/org/source')
 
         # When: Running environment validation
         # Then: System should exit with error
-        expect { controller.check_required_params }.to raise_error(SystemExit)
+        expect { subject.check_required_params }.to raise_error(SystemExit)
       end
 
       it 'succeeds with all required variables for tag-based deployment' do
         # Given: All required variables including GIT_SOURCE_TAG are set
-        ENV.clear
-        ENV['GIT_IAC_REPO'] = 'github.com/org/repo'
-        ENV['GIT_IAC_TOKEN'] = 'token123'
-        ENV['GIT_SOURCE_REPO'] = 'github.com/org/source'
-        ENV['GIT_SOURCE_TAG'] = 'v1.0.0'
+        stub_env('GIT_IAC_REPO', 'github.com/org/repo')
+        stub_env('GIT_IAC_TOKEN', 'token123')
+        stub_env('GIT_SOURCE_REPO', 'github.com/org/source')
+        stub_env('GIT_SOURCE_TAG', 'v1.0.0')
 
         # When: Running environment validation
         # Then: System should not exit with error
-        expect { controller.check_required_params }.not_to raise_error
+        expect { subject.check_required_params }.not_to raise_error
       end
 
       it 'succeeds with all required variables for commit-based deployment' do
         # Given: All required variables including commit SHA and branch are set
-        ENV.clear
-        ENV['GIT_IAC_REPO'] = 'github.com/org/repo'
-        ENV['GIT_IAC_TOKEN'] = 'token123'
-        ENV['GIT_SOURCE_REPO'] = 'github.com/org/source'
-        ENV['GIT_SOURCE_COMMIT_SHA'] = 'abc123'
-        ENV['GIT_SOURCE_BRANCH'] = 'main'
+        stub_env('GIT_IAC_REPO', 'github.com/org/repo')
+        stub_env('GIT_IAC_TOKEN', 'token123')
+        stub_env('GIT_SOURCE_REPO', 'github.com/org/source')
+        stub_env('GIT_SOURCE_COMMIT_SHA', 'abc123')
+        stub_env('GIT_SOURCE_BRANCH', 'main')
 
         # When: Running environment validation
         # Then: System should not exit with error
-        expect { controller.check_required_params }.not_to raise_error
+        expect { subject.check_required_params }.not_to raise_error
       end
     end
   end
@@ -101,9 +79,9 @@ RSpec.describe UpdaterController do
 
     it 'clones the repository with correct authentication and branch' do
       # Given: Required environment variables for repository cloning
-      ENV['GIT_IAC_TOKEN'] = 'token123'
-      ENV['GIT_IAC_REPO'] = 'github.com/org/repo'
-      ENV['GIT_IAC_BRANCH'] = 'main'
+      stub_env('GIT_IAC_TOKEN', 'token123')
+      stub_env('GIT_IAC_REPO', 'github.com/org/repo')
+      stub_env('GIT_IAC_BRANCH', 'main')
 
       # When: Cloning the repository
       # Then: Git clone should be called with correct parameters
@@ -113,7 +91,7 @@ RSpec.describe UpdaterController do
         { branch: 'main' }
       )
       
-      controller.clone_iac_repo
+      subject.clone_iac_repo
     end
   end
 
@@ -155,10 +133,10 @@ RSpec.describe UpdaterController do
       }.to_yaml)
 
       # When: Loading configurations
-      controller.get_applications_available
+      subject.get_applications_available
 
       # Then: Configurations should be merged correctly
-      apps_conf = controller.instance_variable_get(:@applications_conf)
+      apps_conf = subject.instance_variable_get(:@applications_conf)
       expect(apps_conf.dig('environments', 'development', 'applications')).to include('app1', 'app2')
     end
   end
@@ -184,16 +162,16 @@ RSpec.describe UpdaterController do
       }.to_yaml)
 
       # And: Application is configured for update
-      ENV['GIT_SOURCE_TAG'] = 'v1.0.0'
+      stub_env('GIT_SOURCE_TAG', 'v1.0.0')
       apps_to_update = [{
         'path' => 'development',
         'name' => 'myapp',
         'image' => 'org/myapp:new-tag'
       }]
-      controller.instance_variable_set(:@applications_to_update, apps_to_update)
+      subject.instance_variable_set(:@applications_to_update, apps_to_update)
 
       # When: Updating image tags
-      controller.update_images_tags
+      subject.update_images_tags
 
       # Then: Settings file should contain updated image tag
       updated_settings = YAML.load_file(settings_path)
@@ -221,10 +199,10 @@ RSpec.describe UpdaterController do
         'name' => 'app1',
         'image' => 'org/app1:new-tag'
       }]
-      controller.instance_variable_set(:@applications_to_update, apps_to_update)
+      subject.instance_variable_set(:@applications_to_update, apps_to_update)
 
       # When: Updating image tags
-      controller.update_images_tags
+      subject.update_images_tags
 
       # Then: Only specified application should be updated
       updated_settings = YAML.load_file(settings_path)
@@ -242,11 +220,10 @@ RSpec.describe UpdaterController do
     let(:deployer_file) { 'deployer.yaml' }
 
     before do
-      ENV['IAC_DEPLOYER_FILE'] = deployer_file
+      stub_env('IAC_DEPLOYER_FILE', deployer_file)
     end
 
     after do
-      ENV.delete('IAC_DEPLOYER_FILE')
       File.delete(deployer_file) if File.exist?(deployer_file)
     end
 
@@ -257,10 +234,10 @@ RSpec.describe UpdaterController do
         { 'path' => 'development', 'name' => 'app2' },
         { 'path' => 'production', 'name' => 'app3' }
       ]
-      controller.instance_variable_set(:@applications_to_update, apps_to_update)
+      subject.instance_variable_set(:@applications_to_update, apps_to_update)
 
       # When: Generating deployer configuration
-      controller.generate_deployer_config
+      subject.generate_deployer_config
 
       # Then: Deployer file should contain correct environment mappings
       config = YAML.load_file(deployer_file)
@@ -272,10 +249,10 @@ RSpec.describe UpdaterController do
 
     it 'skips deployer configuration when IAC_DEPLOYER_FILE is not set' do
       # Given: IAC_DEPLOYER_FILE is not set
-      ENV.delete('IAC_DEPLOYER_FILE')
+      stub_env('IAC_DEPLOYER_FILE', nil)
 
       # When: Attempting to generate deployer configuration
-      controller.generate_deployer_config
+      subject.generate_deployer_config
 
       # Then: No deployer file should be created
       expect(File.exist?(deployer_file)).to be false
@@ -308,12 +285,12 @@ RSpec.describe UpdaterController do
       }.to_yaml)
 
       # And: Source repository configuration
-      ENV['GIT_SOURCE_REPO'] = 'test-repo'
-      ENV['GIT_SOURCE_BRANCH'] = 'main'
+      stub_env('GIT_SOURCE_REPO', 'test-repo')
+      stub_env('GIT_SOURCE_BRANCH', 'main')
 
       # When: Finding involved applications
       # Then: Should exit with status 0
-      expect { controller.find_involved_applications }.to raise_error(SystemExit)
+      expect { subject.find_involved_applications }.to raise_error(SystemExit)
     end
   end
 
@@ -324,20 +301,23 @@ RSpec.describe UpdaterController do
     before do
       allow(Git).to receive(:clone).and_return(mock_git)
       allow(mock_git).to receive(:current_branch).and_return('main')
-      ENV['GIT_SOURCE_REPO'] = 'test-repo'
-      ENV['GIT_DRY_RUN'] = 'false'
-      
+      stub_env('GIT_SOURCE_REPO', 'test-repo')
+      stub_env('GIT_DRY_RUN', 'false')
+
       # Freeze time for predictable branch names
       allow(DateTime).to receive(:now).and_return(fixed_time)
     end
 
     context 'when creating pull requests' do
       before do
-        ENV['GIT_SOURCE_TAG'] = 'v1.0.0'
-        allow(mock_git).to receive(:branch)
+        stub_env('GIT_SOURCE_TAG', 'v1.0.0')
+        stub_env('GIT_SOURCE_BRANCH', 'main')
+        allow(mock_git).to receive(:branch).and_return(instance_double(Git::Branch))
         allow(mock_git).to receive_message_chain(:branch, :checkout)
         allow(mock_git).to receive(:commit_all)
         allow(mock_git).to receive(:push)
+
+        subject.clone_iac_repo
       end
 
       it 'creates a pull request for tag-based deployments' do
@@ -351,21 +331,24 @@ RSpec.describe UpdaterController do
         expect(mock_git).to receive(:push).with('origin', expected_branch)
         
         # And: Should create pull request
-        expect(controller).to receive(:`).with(/^cd iac-repo && gh pr create.*#{expected_branch}.*/)
+        expect(subject).to receive(:`).with(/^cd iac-repo && gh pr create.*#{expected_branch}.*/)
         
-        controller.update_iac_repo
+        subject.update_iac_repo
       end
     end
 
     context 'when pushing directly' do
       before do
-        ENV['GIT_SOURCE_COMMIT_SHA'] = 'abc123'
-        ENV['GIT_SOURCE_BRANCH'] = 'main'
-        ENV['GIT_IAC_FORCE_PR'] = 'false'
+        stub_env('GIT_SOURCE_COMMIT_SHA', 'abc123')
+        stub_env('GIT_SOURCE_BRANCH', 'main')
+        stub_env('GIT_IAC_FORCE_PR', 'false')
+
         allow(mock_git).to receive(:checkout)
         allow(mock_git).to receive(:commit_all)
         allow(mock_git).to receive(:pull)
         allow(mock_git).to receive(:push)
+
+        subject.clone_iac_repo
       end
 
       it 'pushes directly to branch for commit-based updates' do
@@ -379,7 +362,7 @@ RSpec.describe UpdaterController do
         expect(mock_git).to receive(:pull).with('origin', 'main')
         expect(mock_git).to receive(:push).with('origin', 'main')
         
-        controller.update_iac_repo
+        subject.update_iac_repo
       end
     end
   end
@@ -389,15 +372,23 @@ RSpec.describe UpdaterController do
     
     before do
       # Setup environment
-      ENV.clear
-      ENV['GIT_IAC_REPO'] = 'github.com/org/repo'
-      ENV['GIT_IAC_TOKEN'] = 'token123'
-      ENV['GIT_SOURCE_REPO'] = 'test-app'
-      ENV['GIT_SOURCE_TAG'] = 'v1.0.0'
-      ENV['IAC_DEPLOYER_FILE'] = 'deployer.yaml'
+      stub_env('GIT_IAC_REPO', 'github.com/org/repo')
+      stub_env('GIT_IAC_TOKEN', 'token123')
+      stub_env('GIT_SOURCE_REPO', 'uala/test-app')
+      stub_env('GIT_SOURCE_TAG', 'v1.0.0')
+      stub_env('IAC_DEPLOYER_FILE', 'deployer.yaml')
       
       # Setup mocks
-      allow(Git).to receive(:clone).and_return(mock_git)
+      allow(Git).to receive(:clone).with(anything, 'iac-repo', anything) do#.and_return(mock_git)
+        path = FileUtils.mkdir_p('iac-repo/applications/environments/production').first
+        File.write("#{path}/applications_settings.yaml", {
+          'myapp' => {
+            'name' => 'myapp',
+            'image' => 'org/myapp:old-tag'
+          }
+        }.to_yaml)
+        mock_git
+      end
       allow(mock_git).to receive(:current_branch).and_return('main')
       allow(mock_git).to receive(:branch)
       
@@ -407,24 +398,10 @@ RSpec.describe UpdaterController do
       
       allow(mock_git).to receive(:commit_all)
       allow(mock_git).to receive(:push)
-      allow(controller).to receive(:`)
-      
-      # Setup test files
-      FileUtils.mkdir_p('iac-repo/applications/development')
-      File.write('iac-repo/applications.yaml', {
-        'environments' => {
-          'development' => {
-            'applications' => {
-              'test-app' => {
-                'name' => 'test-app',
-                'git_repo' => 'test-app',
-                'only_tags' => true,
-                'image' => 'org/test-app:old-tag'
-              }
-            }
-          }
-        }
-      }.to_yaml)
+      allow(subject).to receive(:`)
+
+      fixture_path = File.absolute_path('spec/fixtures/production/tag_based.yaml')
+      allow(Dir).to receive(:glob).with('iac-repo/applications*.yaml').and_return([fixture_path])
     end
 
     after do
@@ -434,13 +411,13 @@ RSpec.describe UpdaterController do
 
     it 'executes the complete update workflow' do
       # When: Running the complete workflow
-      controller.run
+      expect { subject.run }.not_to raise_error(SystemExit)
 
       # Then: Should generate deployer configuration
       expect(File.exist?('deployer.yaml')).to be true
       config = YAML.load_file('deployer.yaml')
       expect(config['deploy_environments']).to contain_exactly(
-        { 'development' => ['test-app'] }
+        { 'production' => ['testApp'] }
       )
     end
   end

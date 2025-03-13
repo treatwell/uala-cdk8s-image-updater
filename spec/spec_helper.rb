@@ -46,6 +46,9 @@ $LOAD_PATH.unshift File.expand_path('../app', __dir__)
 require 'utilities/updater_utilities'
 require 'controllers/updater_controller'
 
+# Require support files
+Dir[File.expand_path('support/**/*.rb', __dir__)].each { |file| require file }
+
 # Helper to set environment variables for tests
 def with_env(env_vars)
   original = {}
@@ -111,4 +114,6 @@ RSpec.configure do |config|
   config.mock_with :rspec do |mocks|
     mocks.allow_message_expectations_on_nil = false
   end
+
+  config.include RSpec::StubbedEnvHelpers
 end
