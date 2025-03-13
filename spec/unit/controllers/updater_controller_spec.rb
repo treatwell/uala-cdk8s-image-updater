@@ -103,27 +103,14 @@ RSpec.describe UpdaterController do
 
     it 'loads and merges multiple YAML configurations' do
       # Given: Multiple YAML files with proper structure
-      yaml1 = {
-        'environments' => {
-          'development' => {
-            'applications' => {
-              'app1' => { 'image' => 'org/app1:v1' }
-            }
-          }
-        }
-      }
-      yaml2 = {
-        'environments' => {
-          'development' => {
-            'applications' => {
-              'app2' => { 'image' => 'org/app2:v1' }
-            }
-          }
-        }
-      }
-
-      File.write('iac-repo/applications1.yaml', yaml1.to_yaml)
-      File.write('iac-repo/applications2.yaml', yaml2.to_yaml)
+      FileUtils.cp(
+        File.join(test_dir, '../../../fixtures/multiple_configs/config1.yaml'),
+        'iac-repo/applications1.yaml'
+      )
+      FileUtils.cp(
+        File.join(test_dir, '../../../fixtures/multiple_configs/config2.yaml'),
+        'iac-repo/applications2.yaml'
+      )
 
       # When: Getting available applications
       controller.instance_variable_set(:@applications_conf, {})
