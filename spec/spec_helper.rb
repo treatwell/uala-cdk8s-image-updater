@@ -71,9 +71,7 @@ ensure
 end
 
 RSpec.configure do |config|
-  # Use fixed seed for deterministic ordering unless overridden
   config.order = :random
-  # config.seed = ENV['RSPEC_SEED'] || 1234
 
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status"
