@@ -133,11 +133,35 @@ RSpec.describe UpdaterController do
       }.to_yaml)
 
       # When: Loading configurations
-      subject.get_applications_available
+      apps_conf = subject.available_applications
 
       # Then: Configurations should be merged correctly
-      apps_conf = subject.instance_variable_get(:@applications_conf)
       expect(apps_conf.dig('environments', 'development', 'applications')).to include('app1', 'app2')
+    end
+
+    it 'loads configurations with ERB interpolation' do
+      # Given: Configuration with ERB interpolation
+      File.write('iac-repo/applications.yaml', {
+        'environments' => {
+          'development' => {
+            'applications' => {
+              'app1' => {
+                'name' => 'app1',
+                'image' => '<%= ENV["TEST_IMAGE"] %>'
+              }
+            }
+          }
+        }
+      }.to_yaml)
+
+      # And: Environment variable for interpolation
+      stub_env('TEST_IMAGE', 'org/app1:latest')
+
+      # When: Loading configurations
+      apps_conf = subject.available_applications
+
+      # Then: Configuration should be loaded with interpolated values
+      expect(apps_conf.dig('environments', 'development', 'applications', 'app1', 'image')).to eq('org/app1:latest')
     end
   end
 
@@ -168,7 +192,7 @@ RSpec.describe UpdaterController do
         'name' => 'myapp',
         'image' => 'org/myapp:new-tag'
       }]
-      subject.instance_variable_set(:@applications_to_update, apps_to_update)
+      allow(subject).to receive(:involved_applications).and_return(apps_to_update)
 
       # When: Updating image tags
       subject.update_images_tags
@@ -199,7 +223,7 @@ RSpec.describe UpdaterController do
         'name' => 'app1',
         'image' => 'org/app1:new-tag'
       }]
-      subject.instance_variable_set(:@applications_to_update, apps_to_update)
+      allow(subject).to receive(:involved_applications).and_return(apps_to_update)
 
       # When: Updating image tags
       subject.update_images_tags
@@ -234,7 +258,8 @@ RSpec.describe UpdaterController do
         { 'path' => 'development', 'name' => 'app2' },
         { 'path' => 'production', 'name' => 'app3' }
       ]
-      subject.instance_variable_set(:@applications_to_update, apps_to_update)
+
+      allow(subject).to receive(:involved_applications).and_return(apps_to_update)
 
       # When: Generating deployer configuration
       subject.generate_deployer_config
@@ -290,7 +315,7 @@ RSpec.describe UpdaterController do
 
       # When: Finding involved applications
       # Then: Should exit with status 0
-      expect { subject.find_involved_applications }.to raise_error(SystemExit)
+      expect { subject.involved_applications }.to raise_error(SystemExit)
     end
   end
 
@@ -369,6 +394,8 @@ RSpec.describe UpdaterController do
 
   describe 'Full Workflow' do
     let(:mock_git) { instance_double(Git::Base) }
+    let(:production_env_path) { 'iac-repo/applications/environments/production' }
+    let(:application_settings_path) { "#{production_env_path}/applications_settings.yaml" }
     
     before do
       # Setup environment
@@ -380,11 +407,11 @@ RSpec.describe UpdaterController do
       
       # Setup mocks
       allow(Git).to receive(:clone).with(anything, 'iac-repo', anything) do#.and_return(mock_git)
-        path = FileUtils.mkdir_p('iac-repo/applications/environments/production').first
-        File.write("#{path}/applications_settings.yaml", {
-          'myapp' => {
-            'name' => 'myapp',
-            'image' => 'org/myapp:old-tag'
+        path = FileUtils.mkdir_p(production_env_path).first
+        File.write(application_settings_path, {
+          'testApp' => {
+            'name' => 'test-app',
+            'image' => 'org/test-app:old-tag'
           }
         }.to_yaml)
         mock_git
@@ -400,7 +427,7 @@ RSpec.describe UpdaterController do
       allow(mock_git).to receive(:push)
       allow(subject).to receive(:`)
 
-      fixture_path = File.absolute_path('spec/fixtures/production/tag_based.yaml')
+      fixture_path = File.absolute_path('spec/fixtures/production/with_erb_interpolation.yaml')
       allow(Dir).to receive(:glob).with('iac-repo/applications*.yaml').and_return([fixture_path])
     end
 
@@ -416,9 +443,14 @@ RSpec.describe UpdaterController do
       # Then: Should generate deployer configuration
       expect(File.exist?('deployer.yaml')).to be true
       config = YAML.load_file('deployer.yaml')
+
       expect(config['deploy_environments']).to contain_exactly(
         { 'production' => ['testApp'] }
       )
+
+      # And: Should update application image tags
+      updated_settings = YAML.load_file(application_settings_path)
+      expect(updated_settings.dig('testApp', 'image')).to eq('org/test-app:v1.0.0')
     end
   end
 end
