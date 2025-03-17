@@ -1,6 +1,19 @@
 ---
 kind: pipeline
 type: docker
+name: unit-tests
+
+steps:
+  - name: test
+    image: ruby:3.2
+    pull: if-not-exists
+    commands:
+      - bundle install
+      - bundle exec rspec
+
+---
+kind: pipeline
+type: docker
 name: notify-pipeline-start
 
 steps:
@@ -30,17 +43,20 @@ kind: pipeline
 type: docker
 name: build-docker-image
 
+depends_on:
+  - unit-tests
+
 steps:
   - name: build-docker-image
     image: plugins/docker
     pull: if-not-exists
     settings:
-      repo: ${DRONE_REPO,,}
+      repo: uala/cdk8s-image-updater
       tags:
         - ${DRONE_SOURCE_BRANCH/\//-}
         - ${DRONE_SOURCE_BRANCH/\//-}-${DRONE_COMMIT_SHA:0:8}
       cache_from:
-        - ${DRONE_REPO,,}:${DRONE_SOURCE_BRANCH/\//-}
+        - uala/cdk8s-image-updater:${DRONE_SOURCE_BRANCH/\//-}
       username:
         from_secret: DOCKER_USERNAME
       password:
@@ -54,11 +70,11 @@ steps:
     image: plugins/docker
     pull: if-not-exists
     settings:
-      repo: ${DRONE_REPO,,}
+      repo: uala/cdk8s-image-updater
       tags:
         - ${DRONE_TAG/\//-}
       cache_from:
-        - ${DRONE_REPO,,}:master-${DRONE_COMMIT_SHA:0:8}
+        - uala/cdk8s-image-updater:master-${DRONE_COMMIT_SHA:0:8}
       username:
         from_secret: DOCKER_USERNAME
       password:

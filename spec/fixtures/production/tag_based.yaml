@@ -1,0 +1,7 @@
+environments:
+  - production:
+    - name: testApp
+      git_repo: uala/test-app
+      branch: main
+      only_tags: true
+      image: org/test-app:v1.0.0
