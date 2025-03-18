@@ -1,0 +1,5 @@
+environments:
+  development:
+    applications:
+      app1:
+        image: org/app1:v1

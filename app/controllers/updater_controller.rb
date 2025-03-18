@@ -13,16 +13,12 @@ class UpdaterController
   def initialize
     @current_step = 0
     @git_client = nil
-    @applications_conf = {}
-    @applications_to_update = []
   end
 
   def run
     check_required_params
     prepare_local_environment
     clone_iac_repo
-    get_applications_available
-    find_involved_applications
     update_images_tags
     update_iac_repo
     generate_deployer_config
@@ -105,40 +101,52 @@ class UpdaterController
     puts 'OK.'
   end
 
-  def get_applications_available
+  def available_applications
+    return @available_applications if defined?(@available_applications)
+
+    @available_applications = {}
+
     _announce_step "Get applications available in iac-repo..."
 
     Dir.glob('iac-repo/applications*.yaml').each do |file|
       File.open(file, 'r') do |yaml_file|
         yaml_conf = YAML.safe_load(ERB.new(File.read(yaml_file)).result)
-        @applications_conf.deep_merge!(yaml_conf)
+        @available_applications.deep_merge!(yaml_conf)
       end
     end
 
-    puts @applications_conf.to_yaml if ENV['DEBUG'] == 'true'
+    puts @available_applications.to_yaml if ENV['DEBUG'] == 'true'
     puts 'OK.'
+
+    @available_applications
   end
 
-  def find_involved_applications
+  def involved_applications
+    return @involved_applications if defined?(@involved_applications)
+
+    @involved_applications = []
+
     _announce_step "Find applications that match the current repo and branch..."
 
-    Utilities.check_type(@applications_conf, '', @applications_to_update)
+    Utilities.check_type(available_applications, '', @involved_applications)
 
-    if @applications_to_update.count == 0
+    if @involved_applications.count == 0
       puts "\nNothing to update, exit.".green
 
       puts "\nDONE!\n".blue
       exit(0)
     end
 
-    puts "Found #{@applications_to_update.count} applications to update:".green
-    puts @applications_to_update.map { |e| e['path'] + ' - ' + e['name'] }
+    puts "Found #{@involved_applications.count} applications to update:".green
+    puts @involved_applications.map { |e| e['path'] + ' - ' + e['name'] }
+
+    @involved_applications
   end
 
   def update_images_tags
     _announce_step "Update applications images files with new tags..."
 
-    @applications_to_update.each do |app|
+    involved_applications.each do |app|
       puts app if ENV['DEBUG'] == 'true'
 
       File.open("iac-repo/applications/#{app['path']}/applications_settings.yaml", 'r+') do |yaml_file|
@@ -225,8 +233,7 @@ class UpdaterController
     return unless ENV.key?('IAC_DEPLOYER_FILE')
 
     _announce_step "Generate config for CDK8S Deployer..."
-    # puts @applications_to_update
-    environments = @applications_to_update
+    environments = involved_applications
       .group_by { |a| a['path'].sub('/environments/', '') }
       .map do |environment, applications|
 
