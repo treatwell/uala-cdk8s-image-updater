@@ -233,7 +233,6 @@ class UpdaterController
     return unless ENV.key?('IAC_DEPLOYER_FILE')
 
     _announce_step "Generate config for CDK8S Deployer..."
-    # puts involved_applications
     environments = involved_applications
       .group_by { |a| a['path'].sub('/environments/', '') }
       .map do |environment, applications|
